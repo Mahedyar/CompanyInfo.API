@@ -8,6 +8,8 @@ namespace CompanyInfo.API.Profiles
         {
             CreateMap<Entities.CarModel, Models.CarModelDto>();
             CreateMap<Models.CarModelCreationDto, Entities.CarModel>();
+            CreateMap<Models.CarModelUpdateDto, Entities.CarModel>();
+
 
         }
     }

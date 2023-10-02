@@ -13,11 +13,9 @@ namespace CompanyInfo.API.Repositories
 
         Task<bool> DoesCompanyExist(int companyID);
 
-        //Task<bool> DoesCarModelExist(int carModelID);
-
-        //Task<bool> DoesCompanyAndCarModelExist(int companyID, int carModelID);
-
         Task AddCarModelForCompanyAsync(int companyID, CarModel carModel);
+
+        Task EditCarModelInCompanyAsync(int companyID , int carModelID , CarModel carModel);
 
         Task<bool> SaveChangesAsync();
 

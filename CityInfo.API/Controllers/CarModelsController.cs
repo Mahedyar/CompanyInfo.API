@@ -70,6 +70,7 @@ namespace CompanyInfo.API.Controllers
             await _companyInfoRepository.AddCarModelForCompanyAsync(companyID, carModelEntityForm);
             await _companyInfoRepository.SaveChangesAsync();
             var carModelDtoForm = _mapper.Map<Models.CarModelDto>(carModelEntityForm);
+            //hello world
             return CreatedAtRoute("GetCarModel", new
             {
                 companyID = companyID,
@@ -83,28 +84,20 @@ namespace CompanyInfo.API.Controllers
 
         public async Task<ActionResult> UpdateCarModel(int companyID, int carModelID, CarModelUpdateDto inputCarModel)
         {
-            if (!await _companyInfoRepository.DoesCompanyExist(companyID))
+            var validationResult = await _validateService.ValidateCompanyAndCarModel(companyID, carModelID);
+            if (!validationResult.IsValid)
             {
-                return NotFound();
+                return NotFound(validationResult.ErrorMessage);
             }
-            //var company = _dataStore.Companies.FirstOrDefault(company => company.ID == companyID);
-            //if (company == null)
-            //{
-            //    return NotFound();
-            //}
-            //var carModel = company.CarModels.FirstOrDefault(carModel => carModel.ID == carModelID);
-            //if (carModel == null)
-            //{
-            //    return NotFound();
-            //}
 
-            //carModel.Model = inputCarModel.Model;
-            //carModel.Price = inputCarModel.Price;
-            //carModel.ProductionDate = inputCarModel.ProductionDate;
+           
+            var carModelEntityForm = _mapper.Map<Entities.CarModel>(inputCarModel);
+            await _companyInfoRepository.EditCarModelInCompanyAsync(companyID, carModelID, carModelEntityForm);
+            await _companyInfoRepository.SaveChangesAsync();
+            var carModelDtoForm = _mapper.Map<Models.CarModelDto>(carModelEntityForm);
+            return CreatedAtRoute("GetCarModel", new {companyID = companyID , carModelID = carModelID }, carModelDtoForm);
 
-            return NoContent();
-
-        }
+         }
 
 
         #endregion

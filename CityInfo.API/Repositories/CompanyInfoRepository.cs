@@ -42,17 +42,6 @@ namespace CompanyInfo.API.Repositories
             return await _context.Companies.AnyAsync(company => company.ID == companyID);
         }
 
-        //public async Task<bool> DoesCarModelExist(int carModelID)
-        //{
-
-        //    return await _context.CarModels.AnyAsync(carModel => carModel.ID == carModelID);
-        //}
-
-        //public async Task<bool> DoesCompanyAndCarModelExist(int companyID, int carModelID)
-        //{
-        //    var doesCompanyExist = await DoesCompanyExist(companyID);
-            
-        //}
 
         public async Task AddCarModelForCompanyAsync(int companyID, CarModel carModel)
         {
@@ -63,9 +52,23 @@ namespace CompanyInfo.API.Repositories
             }
         }
 
+
+        public async Task EditCarModelInCompanyAsync(int companyID, int carModelID, CarModel carModel)
+        {
+            var company = await GetCompanyAsync(companyID, true);
+            if(company != null)
+            {
+                var oldCarModel = company.CarModels.FirstOrDefault(carModel => carModel.ID == carModelID);
+                oldCarModel.Model = carModel.Model;
+                oldCarModel.Description = carModel.Description;
+                oldCarModel.CompanyID = companyID;
+            }
+        }
+
         public async Task<bool> SaveChangesAsync()
         {
             return (await _context.SaveChangesAsync()>0);
         }
+
     }
 }
