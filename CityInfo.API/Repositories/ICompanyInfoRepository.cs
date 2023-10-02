@@ -15,7 +15,11 @@ namespace CompanyInfo.API.Repositories
 
         Task AddCarModelForCompanyAsync(int companyID, CarModel carModel);
 
-        Task EditCarModelInCompanyAsync(int companyID , int carModelID , CarModel carModel);
+        //Task EditCarModelInCompanyAsync(int companyID , int carModelID , CarModel carModel);
+
+        void DeleteCarModel(CarModel carModel);
+
+
 
         Task<bool> SaveChangesAsync();
 

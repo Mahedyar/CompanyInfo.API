@@ -51,24 +51,14 @@ namespace CompanyInfo.API.Repositories
                 company.CarModels.Add(carModel);
             }
         }
-
-
-        public async Task EditCarModelInCompanyAsync(int companyID, int carModelID, CarModel carModel)
-        {
-            var company = await GetCompanyAsync(companyID, true);
-            if(company != null)
-            {
-                var oldCarModel = company.CarModels.FirstOrDefault(carModel => carModel.ID == carModelID);
-                oldCarModel.Model = carModel.Model;
-                oldCarModel.Description = carModel.Description;
-                oldCarModel.CompanyID = companyID;
-            }
-        }
-
         public async Task<bool> SaveChangesAsync()
         {
             return (await _context.SaveChangesAsync()>0);
         }
 
+        public void DeleteCarModel(CarModel carModel)
+        {
+            _context.CarModels.Remove(carModel);
+        }
     }
 }

@@ -7,8 +7,10 @@ namespace CompanyInfo.API.Profiles
         public CarModelProfile()
         {
             CreateMap<Entities.CarModel, Models.CarModelDto>();
+            CreateMap<Entities.CarModel, Models.CarModelUpdateDto>();
             CreateMap<Models.CarModelCreationDto, Entities.CarModel>();
             CreateMap<Models.CarModelUpdateDto, Entities.CarModel>();
+            
 
 
         }

@@ -19,7 +19,7 @@ namespace CompanyInfo.API.Controllers
         private readonly ICompanyInfoRepository _companyInfoRepository;
         private readonly ValidateService _validateService;
 
-       
+      
 
         public CarModelsController(ILogger<CarModelsController> logger, IMailService localMailService, IDataStore dataStore, IMapper mapper, ICompanyInfoRepository companyInfoRepository, ValidateService validateService)
         {
@@ -89,84 +89,74 @@ namespace CompanyInfo.API.Controllers
             {
                 return NotFound(validationResult.ErrorMessage);
             }
+            
 
-           
-            var carModelEntityForm = _mapper.Map<Entities.CarModel>(inputCarModel);
-            await _companyInfoRepository.EditCarModelInCompanyAsync(companyID, carModelID, carModelEntityForm);
+
+            var oldCarModel = await _companyInfoRepository.GetSingleCarModelForCompanyAsync(companyID, carModelID);
+            _mapper.Map(inputCarModel, oldCarModel);
+            
+            //var carModelEntityForm = _mapper.Map<Entities.CarModel>(inputCarModel);
+            //await _companyInfoRepository.EditCarModelInCompanyAsync(companyID, carModelID, carModelEntityForm);
+
+            var carModelDtoForm = _mapper.Map<Models.CarModelDto>(oldCarModel);
             await _companyInfoRepository.SaveChangesAsync();
-            var carModelDtoForm = _mapper.Map<Models.CarModelDto>(carModelEntityForm);
-            return CreatedAtRoute("GetCarModel", new {companyID = companyID , carModelID = carModelID }, carModelDtoForm);
+            return CreatedAtRoute("GetCarModel", new { companyID = companyID, carModelID = carModelID }, carModelDtoForm);
+            
+            //return NoContent();
 
-         }
+
+
+        }
 
 
         #endregion
 
         #region Edit with Patch
         [HttpPatch("{carModelID}")]
-        public ActionResult PartiallyUpdateCarModel(
+        public async Task<ActionResult> PartiallyUpdateCarModel(
             int companyID, int carModelID, JsonPatchDocument<CarModelUpdateDto> patchDocument
             )
         {
-            var company = _dataStore.Companies.FirstOrDefault(company => company.ID == companyID);
-            if (company == null)
+            var validationResult = await _validateService.ValidateCompanyAndCarModel(companyID, carModelID);
+            if (!validationResult.IsValid)
             {
-                return NotFound();
+                return NotFound(validationResult.ErrorMessage);
             }
 
-            var carModelFromStore = company.CarModels.FirstOrDefault(carmodel => carmodel.ID == carModelID);
-            if (carModelFromStore == null)
-            {
-                return NotFound();
-            }
-
-            var carModelToPatch = new CarModelUpdateDto()
-            {
-                Model = carModelFromStore.Model,
-                Description = carModelFromStore.Description,
-                ProductionDate = carModelFromStore.ProductionDate,
-                Price = carModelFromStore.Price
-            };
-
-            patchDocument.ApplyTo(carModelToPatch, ModelState);
-
+            var oldCarModel = await _companyInfoRepository.GetSingleCarModelForCompanyAsync(companyID, carModelID);
+            var carModelUpdateDtoForm = _mapper.Map<CarModelUpdateDto>(oldCarModel);
+            patchDocument.ApplyTo(carModelUpdateDtoForm, ModelState);
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
-
-            if (!TryValidateModel(carModelToPatch))
+            if (!TryValidateModel(carModelUpdateDtoForm))
             {
                 return BadRequest(ModelState);
             }
-
-            carModelFromStore.Model = carModelToPatch.Model;
-            carModelFromStore.Description = carModelToPatch.Description;
-            carModelFromStore.Price = carModelToPatch.Price;
-            carModelFromStore.ProductionDate = carModelToPatch.ProductionDate;
-
-
+            _mapper.Map(carModelUpdateDtoForm, oldCarModel);
+            await _companyInfoRepository.SaveChangesAsync();
             return NoContent();
+            
+            
         }
         #endregion
 
         #region Delete
 
         [HttpDelete("{carModelID}")]
-        public ActionResult DeleteCarModel(int companyID, int carModelID)
+        public async Task<ActionResult>DeleteCarModel(int companyID, int carModelID)
         {
-            var company = _dataStore.Companies.FirstOrDefault(company => company.ID == companyID);
-            if (company == null)
+            var validationResult = await _validateService.ValidateCompanyAndCarModel(companyID, carModelID);
+            if (!validationResult.IsValid)
             {
-                return NotFound();
-            }
-            var carModel = company.CarModels.FirstOrDefault(carModel => carModel.ID == carModelID);
-            if (carModel == null)
-            {
-                return NotFound();
+                return NotFound(validationResult.ErrorMessage);
             }
 
-            company.CarModels.Remove(carModel);
+            var carModel = await _companyInfoRepository.GetSingleCarModelForCompanyAsync(companyID, carModelID);
+
+            _companyInfoRepository.DeleteCarModel(carModel);
+            _companyInfoRepository.SaveChangesAsync();
 
             _localMailService.SendMail("Carmodel Deleted", $"CarModel Named {carModel.Model} with ID:{carModel.ID} is Deleted");
 
