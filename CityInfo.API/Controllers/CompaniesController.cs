@@ -2,11 +2,13 @@
 using CompanyInfo.API.Models;
 using CompanyInfo.API.Repositories;
 using CompanyInfo.API.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CompanyInfo.API.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/Companies")]
 
     public class CompaniesController : ControllerBase
